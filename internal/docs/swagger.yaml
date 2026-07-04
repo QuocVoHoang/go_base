@@ -2,27 +2,27 @@ basePath: /
 definitions:
   payload.LoginRequest:
     properties:
+      email:
+        type: string
       password:
         type: string
-      username:
-        type: string
     required:
+    - email
     - password
-    - username
     type: object
   payload.RegisterRequest:
     properties:
       avatar:
         type: string
+      birthdate:
+        type: string
       email:
         type: string
-      gender:
-        type: string
-      nickname:
+      full_name:
         type: string
       password:
         type: string
-      phone_number:
+      phone:
         type: string
       role:
         enum:
@@ -30,59 +30,50 @@ definitions:
         - 2
         - 3
         type: integer
-      username:
-        type: string
     required:
+    - email
+    - full_name
     - password
     - role
-    - username
     type: object
   payload.UpdateCurrentUserRequest:
     properties:
       avatar:
         type: string
-      email:
+      birthdate:
         type: string
-      gender:
+      full_name:
         type: string
-      nickname:
-        type: string
-      phone_number:
+      phone:
         type: string
     type: object
-  presenter.AuthUser:
+  response.AuthUser:
     properties:
       avatar:
         type: string
-      created_at:
+      birthdate:
         type: string
       email:
         type: string
-      gender:
+      full_name:
         type: string
       id:
         type: string
       last_login:
         type: string
-      nickname:
-        type: string
-      phone_number:
+      phone:
         type: string
       role:
         type: integer
       status:
         type: string
-      updated_at:
-        type: string
-      username:
-        type: string
     type: object
-  presenter.LoginResponse:
+  response.LoginResponse:
     properties:
       access_token:
         type: string
     type: object
-  presenter.Response:
+  response.Response:
     properties:
       code:
         type: integer
@@ -101,7 +92,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Login with username and password
+      description: Login with email and password
       parameters:
       - description: Login data
         in: body
@@ -116,23 +107,23 @@ paths:
           description: Success
           schema:
             allOf:
-            - $ref: '#/definitions/presenter.Response'
+            - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/presenter.LoginResponse'
+                  $ref: '#/definitions/response.LoginResponse'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/presenter.Response'
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/presenter.Response'
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/presenter.Response'
+            $ref: '#/definitions/response.Response'
       summary: Login user
       tags:
       - auth
@@ -140,7 +131,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Register a new user with username and password
+      description: Register a new user with email and password
       parameters:
       - description: User registration data
         in: body
@@ -155,23 +146,23 @@ paths:
           description: Success
           schema:
             allOf:
-            - $ref: '#/definitions/presenter.Response'
+            - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/presenter.AuthUser'
+                  $ref: '#/definitions/response.AuthUser'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/presenter.Response'
+            $ref: '#/definitions/response.Response'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/presenter.Response'
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/presenter.Response'
+            $ref: '#/definitions/response.Response'
       summary: Register a new user
       tags:
       - auth
@@ -185,19 +176,19 @@ paths:
           description: Success
           schema:
             allOf:
-            - $ref: '#/definitions/presenter.Response'
+            - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/presenter.AuthUser'
+                  $ref: '#/definitions/response.AuthUser'
               type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/presenter.Response'
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/presenter.Response'
+            $ref: '#/definitions/response.Response'
       security:
       - ApiKeyAuth: []
       summary: Get current user
@@ -221,27 +212,27 @@ paths:
           description: Success
           schema:
             allOf:
-            - $ref: '#/definitions/presenter.Response'
+            - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/presenter.AuthUser'
+                  $ref: '#/definitions/response.AuthUser'
               type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/presenter.Response'
+            $ref: '#/definitions/response.Response'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/presenter.Response'
+            $ref: '#/definitions/response.Response'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/presenter.Response'
+            $ref: '#/definitions/response.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/presenter.Response'
+            $ref: '#/definitions/response.Response'
       security:
       - ApiKeyAuth: []
       summary: Update current user

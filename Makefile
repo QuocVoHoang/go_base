@@ -65,6 +65,7 @@ mod:
 
 gen:
 	@swag init -g internal/framework/route/route.go -o internal/docs  --exclude pkg,db,deployment,scripts,vendor
+	protoc --proto_path=proto --go_out=internal/infrastructure/grpc/generated --go_opt=paths=source_relative --go-grpc_out=internal/infrastructure/grpc/generated --go-grpc_opt=paths=source_relative proto/user/user.proto
 
 build:
 	@go build -tags=jsoniter -o $(BINARY) cmd/main.go

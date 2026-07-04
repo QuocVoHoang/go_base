@@ -10,7 +10,7 @@
     "paths": {
         "/api/v1/auth/login": {
             "post": {
-                "description": "Login with username and password",
+                "description": "Login with email and password",
                 "consumes": [
                     "application/json"
                 ],
@@ -38,13 +38,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/presenter.Response"
+                                    "$ref": "#/definitions/response.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/presenter.LoginResponse"
+                                            "$ref": "#/definitions/response.LoginResponse"
                                         }
                                     }
                                 }
@@ -54,19 +54,19 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -74,7 +74,7 @@
         },
         "/api/v1/auth/register": {
             "post": {
-                "description": "Register a new user with username and password",
+                "description": "Register a new user with email and password",
                 "consumes": [
                     "application/json"
                 ],
@@ -102,13 +102,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/presenter.Response"
+                                    "$ref": "#/definitions/response.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/presenter.AuthUser"
+                                            "$ref": "#/definitions/response.AuthUser"
                                         }
                                     }
                                 }
@@ -118,19 +118,19 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -157,13 +157,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/presenter.Response"
+                                    "$ref": "#/definitions/response.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/presenter.AuthUser"
+                                            "$ref": "#/definitions/response.AuthUser"
                                         }
                                     }
                                 }
@@ -173,13 +173,13 @@
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -218,13 +218,13 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/presenter.Response"
+                                    "$ref": "#/definitions/response.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/presenter.AuthUser"
+                                            "$ref": "#/definitions/response.AuthUser"
                                         }
                                     }
                                 }
@@ -234,25 +234,25 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -263,14 +263,14 @@
         "payload.LoginRequest": {
             "type": "object",
             "required": [
-                "password",
-                "username"
+                "email",
+                "password"
             ],
             "properties": {
-                "password": {
+                "email": {
                     "type": "string"
                 },
-                "username": {
+                "password": {
                     "type": "string"
                 }
             }
@@ -278,27 +278,28 @@
         "payload.RegisterRequest": {
             "type": "object",
             "required": [
+                "email",
+                "full_name",
                 "password",
-                "role",
-                "username"
+                "role"
             ],
             "properties": {
                 "avatar": {
                     "type": "string"
                 },
+                "birthdate": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
-                "gender": {
-                    "type": "string"
-                },
-                "nickname": {
+                "full_name": {
                     "type": "string"
                 },
                 "password": {
                     "type": "string"
                 },
-                "phone_number": {
+                "phone": {
                     "type": "string"
                 },
                 "role": {
@@ -308,9 +309,6 @@
                         2,
                         3
                     ]
-                },
-                "username": {
-                    "type": "string"
                 }
             }
         },
@@ -320,33 +318,30 @@
                 "avatar": {
                     "type": "string"
                 },
-                "email": {
+                "birthdate": {
                     "type": "string"
                 },
-                "gender": {
+                "full_name": {
                     "type": "string"
                 },
-                "nickname": {
-                    "type": "string"
-                },
-                "phone_number": {
+                "phone": {
                     "type": "string"
                 }
             }
         },
-        "presenter.AuthUser": {
+        "response.AuthUser": {
             "type": "object",
             "properties": {
                 "avatar": {
                     "type": "string"
                 },
-                "created_at": {
+                "birthdate": {
                     "type": "string"
                 },
                 "email": {
                     "type": "string"
                 },
-                "gender": {
+                "full_name": {
                     "type": "string"
                 },
                 "id": {
@@ -355,10 +350,7 @@
                 "last_login": {
                     "type": "string"
                 },
-                "nickname": {
-                    "type": "string"
-                },
-                "phone_number": {
+                "phone": {
                     "type": "string"
                 },
                 "role": {
@@ -366,16 +358,10 @@
                 },
                 "status": {
                     "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
                 }
             }
         },
-        "presenter.LoginResponse": {
+        "response.LoginResponse": {
             "type": "object",
             "properties": {
                 "access_token": {
@@ -383,7 +369,7 @@
                 }
             }
         },
-        "presenter.Response": {
+        "response.Response": {
             "type": "object",
             "properties": {
                 "code": {

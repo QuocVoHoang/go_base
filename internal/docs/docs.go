@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/api/v1/auth/login": {
             "post": {
-                "description": "Login with username and password",
+                "description": "Login with email and password",
                 "consumes": [
                     "application/json"
                 ],
@@ -45,13 +45,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/presenter.Response"
+                                    "$ref": "#/definitions/response.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/presenter.LoginResponse"
+                                            "$ref": "#/definitions/response.LoginResponse"
                                         }
                                     }
                                 }
@@ -61,19 +61,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -81,7 +81,7 @@ const docTemplate = `{
         },
         "/api/v1/auth/register": {
             "post": {
-                "description": "Register a new user with username and password",
+                "description": "Register a new user with email and password",
                 "consumes": [
                     "application/json"
                 ],
@@ -109,13 +109,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/presenter.Response"
+                                    "$ref": "#/definitions/response.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/presenter.AuthUser"
+                                            "$ref": "#/definitions/response.AuthUser"
                                         }
                                     }
                                 }
@@ -125,19 +125,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -164,13 +164,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/presenter.Response"
+                                    "$ref": "#/definitions/response.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/presenter.AuthUser"
+                                            "$ref": "#/definitions/response.AuthUser"
                                         }
                                     }
                                 }
@@ -180,13 +180,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -225,13 +225,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/presenter.Response"
+                                    "$ref": "#/definitions/response.Response"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/presenter.AuthUser"
+                                            "$ref": "#/definitions/response.AuthUser"
                                         }
                                     }
                                 }
@@ -241,25 +241,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/presenter.Response"
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -270,14 +270,14 @@ const docTemplate = `{
         "payload.LoginRequest": {
             "type": "object",
             "required": [
-                "password",
-                "username"
+                "email",
+                "password"
             ],
             "properties": {
-                "password": {
+                "email": {
                     "type": "string"
                 },
-                "username": {
+                "password": {
                     "type": "string"
                 }
             }
@@ -285,27 +285,28 @@ const docTemplate = `{
         "payload.RegisterRequest": {
             "type": "object",
             "required": [
+                "email",
+                "full_name",
                 "password",
-                "role",
-                "username"
+                "role"
             ],
             "properties": {
                 "avatar": {
                     "type": "string"
                 },
+                "birthdate": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
-                "gender": {
-                    "type": "string"
-                },
-                "nickname": {
+                "full_name": {
                     "type": "string"
                 },
                 "password": {
                     "type": "string"
                 },
-                "phone_number": {
+                "phone": {
                     "type": "string"
                 },
                 "role": {
@@ -315,9 +316,6 @@ const docTemplate = `{
                         2,
                         3
                     ]
-                },
-                "username": {
-                    "type": "string"
                 }
             }
         },
@@ -327,33 +325,30 @@ const docTemplate = `{
                 "avatar": {
                     "type": "string"
                 },
-                "email": {
+                "birthdate": {
                     "type": "string"
                 },
-                "gender": {
+                "full_name": {
                     "type": "string"
                 },
-                "nickname": {
-                    "type": "string"
-                },
-                "phone_number": {
+                "phone": {
                     "type": "string"
                 }
             }
         },
-        "presenter.AuthUser": {
+        "response.AuthUser": {
             "type": "object",
             "properties": {
                 "avatar": {
                     "type": "string"
                 },
-                "created_at": {
+                "birthdate": {
                     "type": "string"
                 },
                 "email": {
                     "type": "string"
                 },
-                "gender": {
+                "full_name": {
                     "type": "string"
                 },
                 "id": {
@@ -362,10 +357,7 @@ const docTemplate = `{
                 "last_login": {
                     "type": "string"
                 },
-                "nickname": {
-                    "type": "string"
-                },
-                "phone_number": {
+                "phone": {
                     "type": "string"
                 },
                 "role": {
@@ -373,16 +365,10 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
                 }
             }
         },
-        "presenter.LoginResponse": {
+        "response.LoginResponse": {
             "type": "object",
             "properties": {
                 "access_token": {
@@ -390,7 +376,7 @@ const docTemplate = `{
                 }
             }
         },
-        "presenter.Response": {
+        "response.Response": {
             "type": "object",
             "properties": {
                 "code": {

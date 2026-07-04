@@ -28,7 +28,7 @@ func (uc *getCurrentUserUsecase) Do(
 		return nil, http_error.UnauthorizedError("missing authenticated user")
 	}
 
-	user, err := uc.userRepo.FindByID(ctx, req.UserID)
+	user, err := uc.userRepo.Get(ctx, req.UserID)
 	if err != nil {
 		return nil, err
 	}

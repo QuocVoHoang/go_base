@@ -32,10 +32,6 @@ func (r *userRepo) Create(ctx context.Context, user *entity.User) error {
 	return r.baseRepo.Create(ctx, user)
 }
 
-func (r *userRepo) FindByID(ctx context.Context, userID uuid.UUID) (*entity.User, error) {
-	return r.baseRepo.Get(ctx, userID)
-}
-
 func (r *userRepo) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
 	var user entity.User
 	err := r.DBForContext(ctx).

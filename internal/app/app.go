@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"os/signal"
 	"syscall"
@@ -13,10 +14,14 @@ import (
 	"github.com/your-org/go-base/internal/domain/usecase"
 	"github.com/your-org/go-base/internal/framework/route"
 	"github.com/your-org/go-base/internal/infrastructure/db/postgres"
+	grpcserver "github.com/your-org/go-base/internal/infrastructure/grpc"
+	userv1 "github.com/your-org/go-base/internal/infrastructure/grpc/generated/user"
 	"github.com/your-org/go-base/internal/infrastructure/handler"
 	"github.com/your-org/go-base/internal/platform/database"
 	"github.com/your-org/go-base/pkg/log"
 	middlewarepkg "github.com/your-org/go-base/pkg/middleware"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 const (
@@ -52,14 +57,21 @@ func Run(cfg *config.Config) error {
 	}()
 
 	userRepo := postgres.NewUserRepository(db)
-	txManager := postgres.NewTransactionManager(db)
 	jwtService := middlewarepkg.NewJWT(cfg.JWTSecret)
-	registerUsecase := usecase.NewRegisterUsecase(userRepo, txManager, jwtService)
-	loginUsecase := usecase.NewLoginUsecase(userRepo, txManager, jwtService)
+	registerUsecase := usecase.NewRegisterUsecase(userRepo, jwtService)
+	loginUsecase := usecase.NewLoginUsecase(userRepo, jwtService)
 	getCurrentUserUsecase := usecase.NewGetCurrentUserUsecase(userRepo)
-	updateCurrentUserUsecase := usecase.NewUpdateCurrentUserUsecase(userRepo, txManager)
+	updateCurrentUserUsecase := usecase.NewUpdateCurrentUserUsecase(userRepo)
 	authHandler := handler.NewAuthHandler(registerUsecase, loginUsecase)
 	userHandler := handler.NewUserHandler(getCurrentUserUsecase, updateCurrentUserUsecase)
+
+	grpcSrv := grpc.NewServer()
+	userv1.RegisterUserServiceServer(grpcSrv, grpcserver.NewUserServer(userRepo))
+	reflection.Register(grpcSrv)
+	grpcLis, err := net.Listen("tcp", ":"+cfg.GRPCPort)
+	if err != nil {
+		return fmt.Errorf("listen gRPC on :%s: %w", cfg.GRPCPort, err)
+	}
 
 	router := route.NewRouter(cfg, db, jwtService, authHandler, userHandler)
 	server := &http.Server{
@@ -73,8 +85,13 @@ func Run(cfg *config.Config) error {
 
 	serverErr := make(chan error, 1)
 	go func() {
-		log.Infof("Starting %s in %s environment on port %s", cfg.AppName, cfg.ENV, cfg.PORT)
+		log.Infof("Starting %s HTTP in %s environment on port %s", cfg.AppName, cfg.ENV, cfg.PORT)
 		serverErr <- server.ListenAndServe()
+	}()
+
+	go func() {
+		log.Infof("Starting %s gRPC in %s environment on port %s", cfg.AppName, cfg.ENV, cfg.GRPCPort)
+		serverErr <- grpcSrv.Serve(grpcLis)
 	}()
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -82,10 +99,9 @@ func Run(cfg *config.Config) error {
 
 	select {
 	case err := <-serverErr:
-		if errors.Is(err, http.ErrServerClosed) {
-			return nil
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			return fmt.Errorf("run server: %w", err)
 		}
-		return fmt.Errorf("run server: %w", err)
 	case <-ctx.Done():
 		log.Info("Shutdown signal received")
 	}
@@ -93,8 +109,10 @@ func Run(cfg *config.Config) error {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
 
+	grpcSrv.GracefulStop()
+
 	if err := server.Shutdown(shutdownCtx); err != nil {
-		return fmt.Errorf("shutdown server: %w", err)
+		return fmt.Errorf("shutdown HTTP server: %w", err)
 	}
 
 	log.Info("Server stopped")

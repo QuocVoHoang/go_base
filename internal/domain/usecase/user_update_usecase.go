@@ -12,17 +12,14 @@ import (
 )
 
 type updateCurrentUserUsecase struct {
-	userRepo  repository.IUserRepo
-	txManager repository.TransactionManager
+	userRepo repository.IUserRepo
 }
 
 func NewUpdateCurrentUserUsecase(
 	userRepo repository.IUserRepo,
-	txManager repository.TransactionManager,
 ) UpdateCurrentUserUsecase {
 	return &updateCurrentUserUsecase{
-		userRepo:  userRepo,
-		txManager: txManager,
+		userRepo: userRepo,
 	}
 }
 
@@ -34,34 +31,25 @@ func (uc *updateCurrentUserUsecase) Do(
 		return nil, err
 	}
 
-	var result *dto.UpdateCurrentUserResult
-	err := uc.txManager.WithinTransaction(ctx, func(ctx context.Context) error {
-		user, err := uc.userRepo.FindByID(ctx, req.UserID)
-		if err != nil {
-			return err
-		}
-		if user == nil {
-			return http_error.NotFoundError("resource not found")
-		}
-
-		if user.Status != entity.UserStatusActive {
-			return http_error.UnauthorizedError("user is inactive")
-		}
-
-		applyUpdateCurrentUserRequest(user, req)
-		if err := uc.userRepo.Update(ctx, user); err != nil {
-			return fmt.Errorf("update user: %w", err)
-		}
-
-		userResult := buildUserResult(*user)
-		result = &userResult
-		return nil
-	})
+	user, err := uc.userRepo.Get(ctx, req.UserID)
 	if err != nil {
 		return nil, err
 	}
+	if user == nil {
+		return nil, http_error.NotFoundError("resource not found")
+	}
 
-	return result, nil
+	if user.Status != entity.UserStatusActive {
+		return nil, http_error.UnauthorizedError("user is inactive")
+	}
+
+	applyUpdateCurrentUserRequest(user, req)
+	if err := uc.userRepo.Update(ctx, user); err != nil {
+		return nil, fmt.Errorf("update user: %w", err)
+	}
+
+	userResult := buildUserResult(*user)
+	return &userResult, nil
 }
 
 func validateUpdateCurrentUserRequest(req dto.UpdateCurrentUserRequest) error {

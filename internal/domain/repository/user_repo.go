@@ -10,7 +10,6 @@ import (
 type IUserRepo interface {
 	IBaseRepo[entity.User]
 
-	FindByID(ctx context.Context, userID uuid.UUID) (*entity.User, error)
 	FindByEmail(ctx context.Context, email string) (*entity.User, error)
 	UpdateLastLogin(ctx context.Context, userID uuid.UUID) error
 }

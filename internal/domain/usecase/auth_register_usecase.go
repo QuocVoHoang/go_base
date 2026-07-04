@@ -13,20 +13,17 @@ import (
 )
 
 type registerUsecase struct {
-	userRepo  repository.IUserRepo
-	txManager repository.TransactionManager
-	jwt       middlewarepkg.JWT
+	userRepo repository.IUserRepo
+	jwt      middlewarepkg.JWT
 }
 
 func NewRegisterUsecase(
 	userRepo repository.IUserRepo,
-	txManager repository.TransactionManager,
 	jwt middlewarepkg.JWT,
 ) RegisterUsecase {
 	return &registerUsecase{
-		userRepo:  userRepo,
-		txManager: txManager,
-		jwt:       jwt,
+		userRepo: userRepo,
+		jwt:      jwt,
 	}
 }
 
@@ -35,56 +32,47 @@ func (uc *registerUsecase) Do(ctx context.Context, req dto.RegisterRequest) (*dt
 		return nil, err
 	}
 
-	var result *dto.RegisterResult
-	err := uc.txManager.WithinTransaction(ctx, func(ctx context.Context) error {
-		normalizedEmail := normalizeEmail(req.Email)
-		existingUser, err := uc.userRepo.FindByEmail(ctx, normalizedEmail)
-		if err == nil && existingUser != nil {
-			return http_error.ConflictError("email already exists")
-		}
-		if err != nil {
-			return err
-		}
-
-		salt, err := generateSalt()
-		if err != nil {
-			return fmt.Errorf("generate password salt: %w", err)
-		}
-
-		hashedPassword, err := hashPassword(req.Password, salt)
-		if err != nil {
-			return fmt.Errorf("hash password: %w", err)
-		}
-
-		birthdate, err := parseOptionalDate(req.Birthdate)
-		if err != nil {
-			return http_error.BadRequestError("birthdate must use YYYY-MM-DD format")
-		}
-
-		user := &entity.User{
-			Email:        normalizedEmail,
-			Phone:        normalizeOptional(req.Phone),
-			FullName:     normalizeRequired(req.FullName),
-			Role:         req.Role,
-			Status:       entity.UserStatusActive,
-			Password:     hashedPassword,
-			PasswordSalt: salt,
-			Avatar:       req.Avatar,
-			Birthdate:    birthdate,
-		}
-		if err := uc.userRepo.Create(ctx, user); err != nil {
-			return fmt.Errorf("create user: %w", err)
-		}
-
-		userResult := buildUserResult(*user)
-		result = &userResult
-		return nil
-	})
+	normalizedEmail := normalizeEmail(req.Email)
+	existingUser, err := uc.userRepo.FindByEmail(ctx, normalizedEmail)
+	if err == nil && existingUser != nil {
+		return nil, http_error.ConflictError("email already exists")
+	}
 	if err != nil {
 		return nil, err
 	}
 
-	return result, nil
+	salt, err := generateSalt()
+	if err != nil {
+		return nil, fmt.Errorf("generate password salt: %w", err)
+	}
+
+	hashedPassword, err := hashPassword(req.Password, salt)
+	if err != nil {
+		return nil, fmt.Errorf("hash password: %w", err)
+	}
+
+	birthdate, err := parseOptionalDate(req.Birthdate)
+	if err != nil {
+		return nil, http_error.BadRequestError("birthdate must use YYYY-MM-DD format")
+	}
+
+	user := &entity.User{
+		Email:        normalizedEmail,
+		Phone:        normalizeOptional(req.Phone),
+		FullName:     normalizeRequired(req.FullName),
+		Role:         req.Role,
+		Status:       entity.UserStatusActive,
+		Password:     hashedPassword,
+		PasswordSalt: salt,
+		Avatar:       req.Avatar,
+		Birthdate:    birthdate,
+	}
+	if err := uc.userRepo.Create(ctx, user); err != nil {
+		return nil, fmt.Errorf("create user: %w", err)
+	}
+
+	userResult := buildUserResult(*user)
+	return &userResult, nil
 }
 
 func validateRegisterRequest(req dto.RegisterRequest) error {
