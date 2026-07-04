@@ -4,7 +4,7 @@
 // - protoc             v7.34.0
 // source: user/user.proto
 
-package userv1
+package grpcUser
 
 import (
 	context "context"

@@ -15,7 +15,7 @@ import (
 	"github.com/your-org/go-base/internal/framework/route"
 	"github.com/your-org/go-base/internal/infrastructure/db/postgres"
 	grpcserver "github.com/your-org/go-base/internal/infrastructure/grpc"
-	userv1 "github.com/your-org/go-base/internal/infrastructure/grpc/generated/user"
+	gprcUser "github.com/your-org/go-base/internal/infrastructure/grpc/generated/user"
 	"github.com/your-org/go-base/internal/infrastructure/handler"
 	"github.com/your-org/go-base/internal/platform/database"
 	"github.com/your-org/go-base/pkg/log"
@@ -66,7 +66,7 @@ func Run(cfg *config.Config) error {
 	userHandler := handler.NewUserHandler(getCurrentUserUsecase, updateCurrentUserUsecase)
 
 	grpcSrv := grpc.NewServer()
-	userv1.RegisterUserServiceServer(grpcSrv, grpcserver.NewUserServer(userRepo))
+	gprcUser.RegisterUserServiceServer(grpcSrv, grpcserver.NewUserServer(userRepo))
 	reflection.Register(grpcSrv)
 	grpcLis, err := net.Listen("tcp", ":"+cfg.GRPCPort)
 	if err != nil {

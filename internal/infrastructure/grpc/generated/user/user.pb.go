@@ -4,7 +4,7 @@
 // 	protoc        v7.34.0
 // source: user/user.proto
 
-package userv1
+package grpcUser
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -155,7 +155,7 @@ const file_user_user_proto_rawDesc = "" +
 	"\x04role\x18\x04 \x01(\x05R\x04role\x12\x16\n" +
 	"\x06status\x18\x05 \x01(\tR\x06status2K\n" +
 	"\vUserService\x12<\n" +
-	"\aGetUser\x12\x17.user.v1.GetUserRequest\x1a\x18.user.v1.GetUserResponseBSZQgithub.com/your-org/go-base/internal/infrastructure/grpc/generated/user/v1;userv1b\x06proto3"
+	"\aGetUser\x12\x17.user.v1.GetUserRequest\x1a\x18.user.v1.GetUserResponseBRZPgithub.com/your-org/go-base/internal/infrastructure/grpc/generated/user;grpcUserb\x06proto3"
 
 var (
 	file_user_user_proto_rawDescOnce sync.Once

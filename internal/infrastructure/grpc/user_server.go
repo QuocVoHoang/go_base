@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/your-org/go-base/internal/domain/repository"
-	userv1 "github.com/your-org/go-base/internal/infrastructure/grpc/generated/user"
+	grpcUser "github.com/your-org/go-base/internal/infrastructure/grpc/generated/user"
 	"github.com/your-org/go-base/pkg/http_error"
 	"github.com/your-org/go-base/pkg/log"
 	"google.golang.org/grpc/codes"
@@ -14,7 +14,7 @@ import (
 
 // UserServer implements the generated UserServiceServer interface.
 type UserServer struct {
-	userv1.UnimplementedUserServiceServer
+	grpcUser.UnimplementedUserServiceServer
 	userRepo repository.IUserRepo
 }
 
@@ -22,7 +22,7 @@ func NewUserServer(userRepo repository.IUserRepo) *UserServer {
 	return &UserServer{userRepo: userRepo}
 }
 
-func (s *UserServer) GetUser(ctx context.Context, req *userv1.GetUserRequest) (*userv1.GetUserResponse, error) {
+func (s *UserServer) GetUser(ctx context.Context, req *grpcUser.GetUserRequest) (*grpcUser.GetUserResponse, error) {
 	userID, err := uuid.Parse(req.GetUserId())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
@@ -37,7 +37,7 @@ func (s *UserServer) GetUser(ctx context.Context, req *userv1.GetUserRequest) (*
 		return nil, status.Error(codes.NotFound, http_error.NotFoundError("user not found").Error())
 	}
 
-	return &userv1.GetUserResponse{
+	return &grpcUser.GetUserResponse{
 		Id:       user.ID.String(),
 		Email:    user.Email,
 		FullName: user.FullName,
