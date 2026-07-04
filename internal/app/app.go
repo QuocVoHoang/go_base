@@ -1,0 +1,102 @@
+package app
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"net/http"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/your-org/go-base/internal/config"
+	"github.com/your-org/go-base/internal/domain/usecase"
+	"github.com/your-org/go-base/internal/framework/route"
+	"github.com/your-org/go-base/internal/infrastructure/db/postgres"
+	"github.com/your-org/go-base/internal/infrastructure/handler"
+	"github.com/your-org/go-base/internal/platform/database"
+	"github.com/your-org/go-base/pkg/log"
+	middlewarepkg "github.com/your-org/go-base/pkg/middleware"
+)
+
+const (
+	readHeaderTimeout = 5 * time.Second
+	readTimeout       = 10 * time.Second
+	writeTimeout      = 30 * time.Second
+	idleTimeout       = 60 * time.Second
+	shutdownTimeout   = 30 * time.Second
+)
+
+func Run(cfg *config.Config) error {
+	if err := log.SetLevel(cfg.LogLevel); err != nil {
+		return fmt.Errorf("set log level: %w", err)
+	}
+
+	db, err := database.InitDatabase(database.Config{
+		User:         cfg.Database.DBUser,
+		Password:     cfg.Database.DBPass,
+		Host:         cfg.Database.DBHost,
+		Port:         cfg.Database.DBPort,
+		DatabaseName: cfg.Database.DBName,
+		SSLMode:      cfg.Database.SSLMode,
+		ENV:          cfg.ENV,
+	})
+	if err != nil {
+		return fmt.Errorf("initialize database: %w", err)
+	}
+	defer func() {
+		sqlDB, err := db.DB()
+		if err == nil {
+			_ = sqlDB.Close()
+		}
+	}()
+
+	userRepo := postgres.NewUserRepository(db)
+	txManager := postgres.NewTransactionManager(db)
+	jwtService := middlewarepkg.NewJWT(cfg.JWTSecret)
+	registerUsecase := usecase.NewRegisterUsecase(userRepo, txManager, jwtService)
+	loginUsecase := usecase.NewLoginUsecase(userRepo, txManager, jwtService)
+	getCurrentUserUsecase := usecase.NewGetCurrentUserUsecase(userRepo)
+	updateCurrentUserUsecase := usecase.NewUpdateCurrentUserUsecase(userRepo, txManager)
+	authHandler := handler.NewAuthHandler(registerUsecase, loginUsecase)
+	userHandler := handler.NewUserHandler(getCurrentUserUsecase, updateCurrentUserUsecase)
+
+	router := route.NewRouter(cfg, db, jwtService, authHandler, userHandler)
+	server := &http.Server{
+		Addr:              ":" + cfg.PORT,
+		Handler:           router,
+		ReadHeaderTimeout: readHeaderTimeout,
+		ReadTimeout:       readTimeout,
+		WriteTimeout:      writeTimeout,
+		IdleTimeout:       idleTimeout,
+	}
+
+	serverErr := make(chan error, 1)
+	go func() {
+		log.Infof("Starting %s in %s environment on port %s", cfg.AppName, cfg.ENV, cfg.PORT)
+		serverErr <- server.ListenAndServe()
+	}()
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	select {
+	case err := <-serverErr:
+		if errors.Is(err, http.ErrServerClosed) {
+			return nil
+		}
+		return fmt.Errorf("run server: %w", err)
+	case <-ctx.Done():
+		log.Info("Shutdown signal received")
+	}
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		return fmt.Errorf("shutdown server: %w", err)
+	}
+
+	log.Info("Server stopped")
+	return nil
+}
